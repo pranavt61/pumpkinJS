@@ -1,8 +1,9 @@
 //AI
 
-var schemaSize = 8;
-var schemaScale = 2;
-var schemaFileName = './src/schema.json';
+var schemaSize = 8;							//size of schema
+var schemaScale = 2;						//degree of error accepted
+var schemaFileName = './src/schema.json';	//location of stored data
+var schemaSet;								
 
 //returns object
 var teach = function()
@@ -121,8 +122,6 @@ var teach = function()
 		]
 	};
 
-	//scale
-
 	//replace 1 -> max scale
 	for(var key in schemaInit)
 		for(var i = 0; i < schemaSize; i ++)
@@ -131,7 +130,6 @@ var teach = function()
 					schemaInit[key][i][j] = schemaScale;
 
 
-	//BORKEN
 	//find distance
 	for(var key in schemaInit)
 	{
@@ -190,6 +188,49 @@ var teach = function()
 	}
 
 	return schemaInit;
+}
+
+//inputs: 	2-D array of false, true, must be size of schema size
+//			schema set
+//output: object, char and distance -or- error
+//note: the higher the number, the stronger the similarities
+var compare = function(testPattern, schemaSet)
+{
+	//error checking 
+	if(typeof testPattern != 'object')
+		return {error: 'Test pattern not and object'};
+	if(testPattern.length != schemaSize)
+		return {error: 'Test pattern: invalid size'};
+	for(var i = 0; i < schemaSize)
+		if(testPattern[i].length != schemaSize)
+			return {error: 'Test pattern: invalid size'};
+
+	var validSchem = {
+		character: '',
+		score: 0
+	};
+
+	for(key in schemaSize)
+	{
+		var score = 0;
+		//TODO Calc score
+		for(var i = 0; i < schemaSize; i ++)
+		{
+			for(var j = 0; j < schemaSize; j ++)
+			{
+				if(testPattern[i][j] === true)
+					score += schemaSet[key][i][j];
+			}
+		}
+
+		if(validSchem.score < score)
+		{
+			validSchem.score = score;
+			validSchem.character = key;
+		}
+	}
+
+	return validSchem;
 }
 
 //exports

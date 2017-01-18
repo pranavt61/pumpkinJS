@@ -1,4 +1,8 @@
-//Starting point
+/*
+TODO:
+	test distance function
+	make front end tester
+*/
 
 //dependencies
 var jsonfile = require('jsonfile');

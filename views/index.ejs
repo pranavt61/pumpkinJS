@@ -3,7 +3,7 @@
 		<title>Poompkin</title>
 	</head>
 	<body onload="loadCanvas();">
-		<canvas id="game-surface" width="800" height="600">
+		<canvas id="game-surface" width="800" height="600" onmousedown="">
 			Your browser does not support HTML5
 		</canvas>
 		<br />
@@ -38,11 +38,106 @@ var fragmentShaderText =
 '}'
 ].join('\n');
 
-var loadCanvas = function () {
-	console.log('This is working');
+//DOM objects
+var canvas = document.getElementById('game-surface');
+var gl = canvas.getContext('webgl');
 
-	var canvas = document.getElementById('game-surface');
-	var gl = canvas.getContext('webgl');
+//GPU data
+var vertData = [];
+var IndexData = [];
+
+//GL Buffers
+var VertexBufferObject;
+var indexBufferObject;
+
+var numRects = 0;
+
+//tilemap
+var tileMapSize = 8;
+var tilemap = [];
+var gridWidth = 0.02;
+var gridRects = [];
+
+//set colors for gui
+var colors = {
+	neg:{
+		r:1,
+		g:1,
+		b:1
+	},
+	pos:{
+		r:0,
+		g:0,
+		b:0
+	},
+	grid:{
+		r:0,
+		g:1,
+		b:0
+	},
+};
+
+//rect object
+var GRect = function(posX, posY, width, height, color)
+{
+	this.pos = {
+		x: posX,
+		y: posY
+	};
+	this.dim = {
+		w: width,
+		h: height
+	};
+	this.id = numRects++;
+
+	//edit GPU data
+	for(var i = 0; i < 4; i ++)
+	{
+		//position
+		if(i == 0)
+		{
+			vertData.push(this.pos.x); // X
+			vertData.push(this.pos.y); // Y
+		}
+		else if(i == 1)
+		{
+			vertData.push(this.pos.x + this.dim.w); // X
+			vertData.push(this.pos.y); // Y
+		}
+		else if(i == 2)
+		{
+			vertData.push(this.pos.x + this.dim.w); // X
+			vertData.push(this.pos.y - this.dim.h); // Y
+		}
+		else if(i == 3)
+		{
+			vertData.push(this.pos.x); // X
+			vertData.push(this.pos.y - this.dim.h); // Y
+		}
+		else
+			break;
+
+		//color
+		vertData.push(colors[color].r);
+		vertData.push(colors[color].g);
+		vertData.push(colors[color].b);
+	}
+
+	//index data
+	let j = 4 * this.id;
+    IndexData.push(j);
+    IndexData.push(j + 1);
+    IndexData.push(j + 2);
+    IndexData.push(j);
+    IndexData.push(j + 2);
+    IndexData.push(j + 3);
+}
+
+var loadCanvas = function () {
+
+	//resize canvas
+	canvas.height =  document.body.clientHeight - 100;
+	canvas.width = canvas.height;
 
 	if (!gl) {
 		console.log('WebGL not supported, falling back on experimental-webgl');
@@ -91,19 +186,36 @@ var loadCanvas = function () {
 		return;
 	}
 
-	//
-	// Create buffer
-	//
-	var triangleVertices = 
-	[ // X, Y,       R, G, B
-		0.0, 0.5,    1.0, 1.0, 0.0,
-		-0.5, -0.5,  0.7, 0.0, 1.0,
-		0.5, -0.5,   0.1, 1.0, 0.6
-	];
+	//init triangles here
 
-	var triangleVertexBufferObject = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexBufferObject);
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangleVertices), gl.STATIC_DRAW);
+	//tilemap
+	var ratio = 2 / tileMapSize;
+	for(var y = 1; y > -1; y -= ratio)
+	{
+		for(var x = -1; x < 1; x += ratio)
+		{
+			tilemap.push(new GRect(x, y - ratio, ratio, -ratio, 'neg'));
+		}
+	}
+
+	//grid
+	for(x = -1; x < 1 + ratio; x += ratio)
+	{
+		gridRects.push(new GRect(x - gridWidth / 2, 1 , gridWidth, 2, 'grid'));
+	}
+
+	for(y = 1; y > -1 - ratio; y -= ratio)
+	{
+		gridRects.push(new GRect(-1, y + gridWidth / 2, 2, gridWidth, 'grid'));
+	}
+
+	VertexBufferObject = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, VertexBufferObject);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertData), gl.DYNAMIC_DRAW);
+
+	indexBufferObject = gl.createBuffer();
+   	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBufferObject);
+   	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(IndexData), gl.DYNAMIC_DRAW);
 
 	var positionAttribLocation = gl.getAttribLocation(program, 'vertPosition');
 	var colorAttribLocation = gl.getAttribLocation(program, 'vertColor');
@@ -121,21 +233,30 @@ var loadCanvas = function () {
 		gl.FLOAT, // Type of elements
 		gl.FALSE,
 		5 * Float32Array.BYTES_PER_ELEMENT, // Size of an individual vertex
-		2 * Float32Array.BYTES_PER_ELEMENT // Offset from the beginning of a single vertex to this attribute
+		2 * Float32Array.BYTES_PER_ELEMENT  // Offset from the beginning of a single vertex to this attribute
 	);
 
 	gl.enableVertexAttribArray(positionAttribLocation);
 	gl.enableVertexAttribArray(colorAttribLocation);
 
-	//
-	// Main render loop
-	//
 	gl.useProgram(program);
-	gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+	//set update loop
+	updateCanvas();
 };
-		</script>
 
+function updateCanvas()
+{
+	//clear screen
+     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-		
+     //update vertex arrays
+     gl.bindBuffer(gl.ARRAY_BUFFER, VertexBufferObject);
+     gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(vertData));
+
+     //drawArrays
+     gl.drawElements(gl.TRIANGLES, IndexData.length, gl.UNSIGNED_SHORT, 0);
+}
+	</script>	
 	</body>
 </html>
