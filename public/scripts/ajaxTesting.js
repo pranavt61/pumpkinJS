@@ -12,15 +12,21 @@ var images = {
 	'true':'positive.png'
 };
 
+var mouse = {
+	curState: false,
+	down: false
+};
+
 var tileClickAction = function()
 	{
-		console.log('Aye');
+
 	};
 
 //tile class
 var Tile = function()
 {
 	//construct tile
+	var self = this;	// used in functions to refer to this obj
 	this.id = numTiles++;
 	this.imageView = document.createElement('img');
 	this.currentState = false; // F = neg, T = pos
@@ -29,14 +35,34 @@ var Tile = function()
 	this.imageView.src = images['false'];
 	this.imageView.width = this.imageView.height = imageSize;
 	this.imageView.draggable = false;
+
 	if(canvas)
 		canvas.appendChild(this.imageView);
 
 	//fucntions
 	this.setState = function(state)
 	{
-		this.currentState = state;
-		this.imageView.src = images[this.currentState.toString()];
+		self.currentState = state;
+		self.imageView.src = images[self.currentState.toString()];
+	};
+
+	//must come after setState decleration
+	this.imageView.onmouseover = function()
+	{
+		if(mouse.down)
+		{
+			self.setState(mouse.curState);
+		}
+	};
+	this.imageView.onmousedown = function()
+	{
+		mouse.down = true;
+		mouse.curState = !self.currentState;
+		self.setState(mouse.curState);
+	};
+	this.imageView.onmouseup = function()
+	{
+		mouse.down = false;
 	};
 }
 
