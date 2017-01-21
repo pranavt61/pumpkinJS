@@ -10,13 +10,13 @@ var portList = 3000;
 
 //app set up
 app.set('view engine', 'ejs');
-app.set('views', path.resolve(__dirname, 'views'));
+app.set('views', path.join(__dirname, '/public'));
 
-app.use(morgan('dev'));
+app.use(express.static('public'));
 
-app.get('/', function (req, res){
-
-	res.render('index');
+app.get('/', function(req, res)
+{
+	res.render('ajaxTesting');
 });
 
 app.listen(portList, function()

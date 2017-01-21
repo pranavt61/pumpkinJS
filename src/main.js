@@ -1,7 +1,7 @@
 /*
 TODO:
 	test distance function
-	make front end tester
+	make front end tester 
 */
 
 //dependencies
