@@ -1,5 +1,7 @@
 //testing Script
 
+console.log('YEE');
+
 var tileMapSize = 8;
 var imageSize = 64;
 var numTiles = 0;
@@ -93,7 +95,7 @@ function sendReq()
 		if(this.readyState == 4 && this.status == 200)
 			console.log(this.responseText);
 	};
-	req.open('POST', '/testPumpkin', true);
+	req.open('POST', '/teachPumpkin', true);
 	req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	req.send("length="+ dataLength+"&data=" + data);
 }

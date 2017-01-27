@@ -26,18 +26,19 @@ app.use(bodyParser.urlencoded({
 })); 
 
 //pumpkin
-app.use(pumpkin.main);
+app.use(pumpkin.test);
+app.use(pumpkin.teach);
 
-app.get('/', function(req, res)
+app.get('/test', function(req, res)
 {
 	res.render('ajaxTesting');
 });
 
-app.post('/', function(req, res)
-	{
-		console.log(req.body.data);
-		res.send('DONE');
-	});
+app.get('/teach', function(req, res)
+{
+	res.render('teachPumpkin');
+});
+
 
 app.listen(portList, function()
 	{

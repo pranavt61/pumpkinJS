@@ -1,14 +1,17 @@
 //AI
 
+//TODOS:
+//teaching page
+
 var schemaSize = 8;							//size of schema
 var schemaScale = 2;						//degree of error accepted
 var schemaFileName = './src/schema.json';	//location of stored data
 var schemaSet;
 
 //Express middleware
-var main = function(req, res, next)
+var testPumpkin = function(req, res, next)
 {
-	if(req.url == '/pumpkin')
+	if(req.url == '/testPumpkin')
 	{
 		var data = [];
 		var pumpkinOutput;
@@ -17,7 +20,7 @@ var main = function(req, res, next)
 		if(!schemaSet)
 		{
 			console.log('Teaching...');
-			schemaSet = teach();
+			schemaSet = loadInit();
 		}
 
 		//convert data
@@ -43,10 +46,20 @@ var main = function(req, res, next)
 	}
 
 	next();
-};					
+};
+
+var teachPumpkin = function(req, res, next)
+{
+	if(req.url == '/teachPumpkin')
+	{
+		res.send('Teaching Yo');
+	}
+
+	next();
+}	
 
 //returns object
-var teach = function()
+var loadInit = function()
 {
 	// set 0 or 1, turned into 0 - {schemaScale}
 	var schemaInit = {
@@ -96,8 +109,8 @@ var teach = function()
 		],
 		'4':
 		[
-			[1,1,0,1,1,1,0,0],
-			[1,1,1,0,1,1,0,0],
+			[1,1,0,0,1,1,0,0],
+			[1,1,0,0,1,1,0,0],
 			[1,1,0,0,1,1,0,0],
 			[1,1,1,1,1,1,1,0],
 			[1,1,1,1,1,1,1,1],
@@ -274,6 +287,7 @@ var compare = function(testPattern, set)
 }
 
 //exports
-exports.main = main;
-exports.teach = teach;
+exports.test = testPumpkin;
+exports.teach = teachPumpkin;
+exports.loadInit = loadInit;
 exports.schemaFileName = schemaFileName;
