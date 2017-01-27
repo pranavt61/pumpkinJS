@@ -1,5 +1,5 @@
 //TODOs:
-//define mouse action
+//Ajax call
 
 var tileMapSize = 8;
 var imageSize = 64;
@@ -17,11 +17,6 @@ var mouse = {
 	down: false
 };
 
-var tileClickAction = function()
-	{
-
-	};
-
 //tile class
 var Tile = function()
 {
@@ -36,6 +31,7 @@ var Tile = function()
 	this.imageView.width = this.imageView.height = imageSize;
 	this.imageView.draggable = false;
 
+	//add to canvas
 	if(canvas)
 		canvas.appendChild(this.imageView);
 
@@ -79,4 +75,26 @@ function load()
 		newImage = document.createElement('br');
 		canvas.appendChild(newImage);
 	}
+}
+
+function sendReq()
+{
+	//collect data
+	var data = '';
+	var dataLength = tileMapSize;
+
+	var c = tileMapSize * tileMapSize;
+	for(var i = 0; i < c; i ++)
+		data += tilemap[i].currentState ? '1':'0';
+
+	//send data
+	var req = new XMLHttpRequest();
+	req.onreadystatechange = function()
+	{
+		if(this.readyState == 4 && this.status == 200)
+			console.log(this.responseText);
+	};
+	req.open('POST', '/pumpkin', true);
+	req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	req.send("length="+ dataLength+"&data=" + data);
 }

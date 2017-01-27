@@ -3,7 +3,47 @@
 var schemaSize = 8;							//size of schema
 var schemaScale = 2;						//degree of error accepted
 var schemaFileName = './src/schema.json';	//location of stored data
-var schemaSet;								
+var schemaSet;
+
+//Express middleware
+var main = function(req, res, next)
+{
+	if(req.url == '/pumpkin')
+	{
+		var data = [];
+		var pumpkinOutput;
+
+		//teach if not known
+		if(!schemaSet)
+		{
+			console.log('Teaching...');
+			schemaSet = teach();
+		}
+
+		//convert data
+		for(var i = 0; i < schemaSize; i ++)
+		{
+			data.push([]);
+			for(var j = 0; j < schemaSize; j ++)
+			{
+				data[i].push(req.body.data[(i * schemaSize) + j] === '1');
+			}
+		}
+
+		pumpkinOutput = compare(data, schemaSet);
+
+		//error checking
+		if(pumpkinOutput.error)
+		{
+			console.error(pumpkinOutput.error);
+			next();
+		}
+
+		res.send(pumpkinOutput);
+	}
+
+	next();
+};					
 
 //returns object
 var teach = function()
@@ -194,14 +234,14 @@ var teach = function()
 //			schema set
 //output: object, char and distance -or- error
 //note: the higher the number, the stronger the similarities
-var compare = function(testPattern, schemaSet)
+var compare = function(testPattern, set)
 {
 	//error checking 
 	if(typeof testPattern != 'object')
 		return {error: 'Test pattern not and object'};
 	if(testPattern.length != schemaSize)
 		return {error: 'Test pattern: invalid size'};
-	for(var i = 0; i < schemaSize)
+	for(var i = 0; i < schemaSize; i ++)
 		if(testPattern[i].length != schemaSize)
 			return {error: 'Test pattern: invalid size'};
 
@@ -210,16 +250,16 @@ var compare = function(testPattern, schemaSet)
 		score: 0
 	};
 
-	for(key in schemaSize)
+	//BROKEN
+	for(key in set)
 	{
 		var score = 0;
-		//TODO Calc score
 		for(var i = 0; i < schemaSize; i ++)
 		{
 			for(var j = 0; j < schemaSize; j ++)
 			{
 				if(testPattern[i][j] === true)
-					score += schemaSet[key][i][j];
+					score += set[key][i][j];
 			}
 		}
 
@@ -234,5 +274,6 @@ var compare = function(testPattern, schemaSet)
 }
 
 //exports
+exports.main = main;
 exports.teach = teach;
 exports.schemaFileName = schemaFileName;
