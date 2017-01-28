@@ -2,6 +2,7 @@
 
 //TODOS:
 //teaching page
+//Express Error Handling
 
 var schemaSize = 8;							//size of schema
 var schemaScale = 2;						//degree of error accepted
@@ -15,6 +16,17 @@ var testPumpkin = function(req, res, next)
 	{
 		var data = [];
 		var pumpkinOutput;
+
+		//req error checking
+		//CHANGE next() -> next(err)
+		var maxCount = schemaSize * schemaSize;
+		if(typeof req.body.data != 'object')
+			next();
+		if(req.body.data.length != maxCount)
+			next();
+		for(var e = 0; e < maxCount; e ++)
+			if(typeof req.body.data[e] != 'boolean')
+				next();
 
 		//teach if not known
 		if(!schemaSet)
@@ -35,7 +47,7 @@ var testPumpkin = function(req, res, next)
 
 		pumpkinOutput = compare(data, schemaSet);
 
-		//error checking
+		//pumpkin error checking
 		if(pumpkinOutput.error)
 		{
 			console.error(pumpkinOutput.error);
@@ -52,7 +64,7 @@ var teachPumpkin = function(req, res, next)
 {
 	if(req.url == '/teachPumpkin')
 	{
-		res.send('Teaching Yo');
+		
 	}
 
 	next();

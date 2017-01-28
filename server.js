@@ -1,5 +1,8 @@
 //Server
 
+//TODO:
+//Error handling
+
 //dependencies
 var express 	= require('express');
 var path		= require('path');
@@ -41,6 +44,6 @@ app.get('/teach', function(req, res)
 
 
 app.listen(portList, function()
-	{
-		console.log('Listening on port: ' + portList);
-	});
+{
+	console.log('Listening on port: ' + portList);
+});
