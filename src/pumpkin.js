@@ -4,71 +4,74 @@
 //teaching page
 //Express Error Handling
 
+var express = require('express');
+var pumpkinRouter = express.Router();
+
 var schemaSize = 8;							//size of schema
 var schemaScale = 2;						//degree of error accepted
 var schemaFileName = './src/schema.json';	//location of stored data
 var schemaSet;
 
 //Express middleware
-var testPumpkin = function(req, res, next)
+pumpkinRouter.post('/test', function(req, res)
 {
-	if(req.url == '/testPumpkin')
+	var data = [];
+	var pumpkinOutput;
+
+	//req error checking
+	//CHANGE next() -> throw err
+	// var maxCount = schemaSize * schemaSize;
+	// if(typeof req.body.data != 'object')
+	// 	next();
+	// if(req.body.data.length != maxCount)
+	// 	next();
+	// for(var e = 0; e < maxCount; e ++)
+	// 	if(typeof req.body.data[e] != 'boolean')
+	// 		next();
+
+	//teach if not known
+	if(!schemaSet)
 	{
-		var data = [];
-		var pumpkinOutput;
-
-		//req error checking
-		//CHANGE next() -> next(err)
-		var maxCount = schemaSize * schemaSize;
-		if(typeof req.body.data != 'object')
-			next();
-		if(req.body.data.length != maxCount)
-			next();
-		for(var e = 0; e < maxCount; e ++)
-			if(typeof req.body.data[e] != 'boolean')
-				next();
-
-		//teach if not known
-		if(!schemaSet)
-		{
-			console.log('Teaching...');
-			schemaSet = loadInit();
-		}
-
-		//convert data
-		for(var i = 0; i < schemaSize; i ++)
-		{
-			data.push([]);
-			for(var j = 0; j < schemaSize; j ++)
-			{
-				data[i].push(req.body.data[(i * schemaSize) + j] === '1');
-			}
-		}
-
-		pumpkinOutput = compare(data, schemaSet);
-
-		//pumpkin error checking
-		if(pumpkinOutput.error)
-		{
-			console.error(pumpkinOutput.error);
-			next();
-		}
-
-		res.send(pumpkinOutput);
+		console.log('Teaching...');
+		schemaSet = loadInit();
 	}
 
-	next();
-};
-
-var teachPumpkin = function(req, res, next)
-{
-	if(req.url == '/teachPumpkin')
+	//convert data
+	for(var i = 0; i < schemaSize; i ++)
 	{
-		
+		data.push([]);
+		for(var j = 0; j < schemaSize; j ++)
+		{
+			data[i].push(req.body.data[(i * schemaSize) + j] === '1');
+		}
 	}
 
-	next();
+	pumpkinOutput = compare(data, schemaSet);
+
+	//pumpkin error checking
+	if(pumpkinOutput.error)
+	{
+		console.error(pumpkinOutput.error);
+		throw pumpkinOutput.error;
+	}
+	res.send(pumpkinOutput);
+});
+
+pumpkinRouter.post('/teach', function(req, res){
+	res.send('TODO');
+});
+
+var teachPumpkin = function(learnChar, schema)
+{
+	if(!schemaSet)
+	{
+		console.log('Teaching...');
+		schemaSet = loadInit();
+	}
+
+	
 }	
+ 
 
 //returns object
 var loadInit = function()
@@ -299,7 +302,7 @@ var compare = function(testPattern, set)
 }
 
 //exports
-exports.test = testPumpkin;
+exports.router = pumpkinRouter;
 exports.teach = teachPumpkin;
 exports.loadInit = loadInit;
 exports.schemaFileName = schemaFileName;

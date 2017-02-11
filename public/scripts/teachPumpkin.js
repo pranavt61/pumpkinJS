@@ -1,7 +1,5 @@
 //testing Script
 
-console.log('YEE');
-
 var tileMapSize = 8;
 var imageSize = 64;
 var numTiles = 0;
@@ -82,11 +80,19 @@ function sendReq()
 {
 	//collect data
 	var data = '';
+	var learnChar = '';
 	var dataLength = tileMapSize;
 
 	var c = tileMapSize * tileMapSize;
 	for(var i = 0; i < c; i ++)
 		data += tilemap[i].currentState ? '1':'0';
+
+	learnChar = document.getElementById('learnChar').value;
+	if(learnChar.length != 1)
+	{
+		alert("Only input one character");
+		return false;
+	}
 
 	//send data
 	var req = new XMLHttpRequest();
@@ -95,7 +101,9 @@ function sendReq()
 		if(this.readyState == 4 && this.status == 200)
 			console.log(this.responseText);
 	};
-	req.open('POST', '/teachPumpkin', true);
+	req.open('POST', '/pumpkin/teach', true);
 	req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	req.send("length="+ dataLength+"&data=" + data);
+	req.send("length="+ dataLength + 
+		"&data=" + data + 
+		"&charLearn=" + learnChar);
 }

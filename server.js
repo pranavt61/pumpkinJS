@@ -29,8 +29,7 @@ app.use(bodyParser.urlencoded({
 })); 
 
 //pumpkin
-app.use(pumpkin.test);
-app.use(pumpkin.teach);
+app.use('/pumpkin', pumpkin.router);
 
 app.get('/test', function(req, res)
 {
